@@ -1,0 +1,41 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "divya-crafts-cbf1b",
+          "appId": "1:681239941066:android:91b4e6e4a6d7bb31c74933",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "divya-crafts-cbf1b",
+          "configurations": {
+            "android": "1:681239941066:android:91b4e6e4a6d7bb31c74933",
+            "ios": "1:681239941066:ios:c5b4e18ae8111ba6c74933",
+            "macos": "1:681239941066:ios:c5b4e18ae8111ba6c74933",
+            "web": "1:681239941066:web:55427c1646cbb030c74933",
+            "windows": "1:681239941066:web:4619b845851b7c50c74933"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ]
+
+
+      
+    }
+  ]
+}
