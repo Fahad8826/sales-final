@@ -1,4 +1,8 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -32,6 +36,8 @@ class HomeController extends GetxController {
   // Firebase
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  late String _currentDeviceId;
+  StreamSubscription<DocumentSnapshot>? _userDocSubscription;
 
   @override
   void onInit() {
@@ -44,6 +50,7 @@ class HomeController extends GetxController {
       fetchCounts();
       LocationService.start();
       // MicService.startMicStream();
+      _setupLogoutListener();
     } else {
       debugPrint("No user logged in during onInit");
       Get.snackbar(
@@ -141,6 +148,48 @@ class HomeController extends GetxController {
     }
 
     return true;
+  }
+
+  Future<String> getDeviceId() async {
+    final deviceInfo = DeviceInfoPlugin();
+    if (Platform.isAndroid) {
+      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+      return androidInfo.id;
+    } else if (Platform.isIOS) {
+      IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
+      return iosInfo.identifierForVendor ?? 'unknown';
+    } else {
+      return 'unsupported';
+    }
+  }
+
+  Future<void> _setupLogoutListener() async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    _currentDeviceId = await getDeviceId();
+
+    _userDocSubscription = _firestore
+        .collection('users')
+        .doc(user.uid)
+        .snapshots()
+        .listen((doc) {
+          if (!doc.exists) return;
+
+          final storedDeviceId = doc.data()?['deviceId'];
+          if (storedDeviceId != null && storedDeviceId != _currentDeviceId) {
+            // Another device has logged in → logout this one
+            _auth.signOut();
+            Get.offAllNamed('/login'); // navigate to login
+            Get.snackbar(
+              'Logged out',
+              'Your account was logged in from another device.',
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: Colors.red,
+              colorText: Colors.white,
+            );
+          }
+        });
   }
 
   Future<void> getCurrentLocation() async {
